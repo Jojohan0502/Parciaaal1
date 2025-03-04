@@ -1,41 +1,52 @@
+using System.Collections;
 using UnityEngine;
 
-public class MovimientoPepsiman : MonoBehaviour
+public class LogicaPersonaje : MonoBehaviour
 {
-    [Header("Movimiento")]
-    public float velocidad = 5f;
-    public float desplazamientoCarril = 3f; // Distancia entre carriles
-    private int carrilActual = 1; // 0 = Izquierda, 1 = Centro, 2 = Derecha
-    private Vector3 objetivoPosicion;
+    [Header("Velocidades")]
+    public float VelocidadPersonaje = 3.0f;
+    public float VelocidadIzqDer = 4.0f;
+    public float FuerzaSalto = 5.0f;
 
-    [Header("Salto")]
-    public float fuerzaSalto = 7f;
-    public Transform groundCheck;
-    public float groundCheckRadius = 0.3f;
-    public LayerMask groundLayer;
-
+    private bool enSuelo = true;
     private Rigidbody rb;
-    private bool isGrounded;
-    private Animator animator;
+    private Animator anim;
+
+    private float velocidadOriginal;
+    private int carrilActual = 1; // 0 = Izquierda, 1 = Centro, 2 = Derecha
+    private float distanciaCarril = 2.0f; // Distancia entre carriles
+    private Vector3 objetivoPosicion;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        animator = GetComponent<Animator>();
+        anim = GetComponent<Animator>();
+        velocidadOriginal = VelocidadPersonaje;
         objetivoPosicion = transform.position;
     }
 
     void Update()
     {
-        MoverAdelante();
-        CambiarCarril();
-        Saltar();
-    }
+        // Movimiento hacia adelante
+        transform.Translate(Vector3.forward * Time.deltaTime * VelocidadPersonaje, Space.World);
 
-    void MoverAdelante()
-    {
-        rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y, velocidad);
-        animator.SetBool("IsMoving", true);
+        // Animación de movimiento
+        if (enSuelo)
+        {
+            anim.SetBool("IsJumping", false);
+            anim.SetBool("IsMoving", true);
+        }
+
+        // Animación de salto
+        if (Input.GetKeyDown(KeyCode.Space) && enSuelo)
+        {
+            rb.AddForce(Vector3.up * FuerzaSalto, ForceMode.Impulse);
+            enSuelo = false;
+            anim.SetBool("IsJumping", true);
+        }
+
+        // Cambio de carril
+        CambiarCarril();
     }
 
     void CambiarCarril()
@@ -49,26 +60,30 @@ public class MovimientoPepsiman : MonoBehaviour
             carrilActual++; // Mueve a la derecha
         }
 
-        // Calcular la posición objetivo en el carril correspondiente
-        objetivoPosicion = new Vector3(carrilActual * desplazamientoCarril - desplazamientoCarril, transform.position.y, transform.position.z);
+        // Calcula la nueva posición en el carril correspondiente
+        objetivoPosicion = new Vector3((carrilActual - 1) * distanciaCarril, transform.position.y, transform.position.z);
 
-        // Mueve instantáneamente al personaje al nuevo carril
-        transform.position = objetivoPosicion;
+        // Movimiento suave
+        transform.position = Vector3.Lerp(transform.position, objetivoPosicion, Time.deltaTime * VelocidadIzqDer);
     }
 
-    void Saltar()
+    public void AumentarVelocidad(float aumento, float duracion)
     {
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundLayer);
+        VelocidadPersonaje += aumento;
+        StartCoroutine(RestablecerVelocidad(duracion));
+    }
 
-        if (isGrounded)
-        {
-            animator.SetBool("IsJumping", false);
-        }
+    private IEnumerator RestablecerVelocidad(float duracion)
+    {
+        yield return new WaitForSeconds(duracion);
+        VelocidadPersonaje = velocidadOriginal;
+    }
 
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Suelo"))
         {
-            rb.velocity = new Vector3(rb.velocity.x, fuerzaSalto, rb.velocity.z);
-            animator.SetBool("IsJumping", true);
+            enSuelo = true;
         }
     }
 }

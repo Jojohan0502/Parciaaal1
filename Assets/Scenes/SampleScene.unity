@@ -343,14 +343,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91eb23ef63b9b20409e5a132b9861381, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  velocidad: 25
-  desplazamientoCarril: 50
-  fuerzaSalto: 10
-  groundCheck: {fileID: 275374666}
-  groundCheckRadius: 0.3
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 40
+  VelocidadPersonaje: 3
+  VelocidadIzqDer: 4
+  FuerzaSalto: 5
 --- !u!54 &810921049
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -441,7 +436,7 @@ GameObject:
   - component: {fileID: 1727853561}
   m_Layer: 3
   m_Name: Cube
-  m_TagString: Untagged
+  m_TagString: Suelo
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
