@@ -13,16 +13,12 @@ public class LogicaPersonaje : MonoBehaviour
     private Animator anim;
 
     private float velocidadOriginal;
-    private int carrilActual = 1; // 0 = Izquierda, 1 = Centro, 2 = Derecha
-    private float distanciaCarril = 2.0f; // Distancia entre carriles
-    private Vector3 objetivoPosicion;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
         velocidadOriginal = VelocidadPersonaje;
-        objetivoPosicion = transform.position;
     }
 
     void Update()
@@ -45,26 +41,25 @@ public class LogicaPersonaje : MonoBehaviour
             anim.SetBool("IsJumping", true);
         }
 
-        // Cambio de carril
-        CambiarCarril();
+        // Movimiento lateral sin restricciones
+        MoverLateral();
     }
 
-    void CambiarCarril()
+    void MoverLateral()
     {
-        if (Input.GetKeyDown(KeyCode.A) && carrilActual > 0)
+        float movimientoLateral = 0f;
+
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
-            carrilActual--; // Mueve a la izquierda
+            movimientoLateral = -VelocidadIzqDer;
         }
-        else if (Input.GetKeyDown(KeyCode.D) && carrilActual < 2)
+        else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
         {
-            carrilActual++; // Mueve a la derecha
+            movimientoLateral = VelocidadIzqDer;
         }
 
-        // Calcula la nueva posición en el carril correspondiente
-        objetivoPosicion = new Vector3((carrilActual - 1) * distanciaCarril, transform.position.y, transform.position.z);
-
-        // Movimiento suave
-        transform.position = Vector3.Lerp(transform.position, objetivoPosicion, Time.deltaTime * VelocidadIzqDer);
+        // Aplica el movimiento lateral
+        transform.Translate(Vector3.right * movimientoLateral * Time.deltaTime, Space.World);
     }
 
     public void AumentarVelocidad(float aumento, float duracion)
