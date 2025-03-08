@@ -1,23 +1,34 @@
 using UnityEngine;
-using UnityEngine.UI; // Necesario para manejar UI
 
-public class RecolectarObjetos : MonoBehaviour
+public class RecolectorObjetos : MonoBehaviour
 {
-    public int contadorObjetos = 0; // Contador de objetos recolectados
-    public Text contadorTexto; // Referencia al texto de UI (opcional)
+    private UIManager uiManager;
+
+    void Start()
+    {
+        uiManager = FindObjectOfType<UIManager>(); // Busca el UIManager una vez al inicio
+    }
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Moneda")) // Si toca un objeto recolectable
+        if (other.CompareTag("Moneda"))
         {
-            contadorObjetos++; // Aumenta el contador
-            Destroy(other.gameObject); // Destruye el objeto recolectado
+            int monedas = PlayerPrefs.GetInt("Monedas", 0) + 1;
+            PlayerPrefs.SetInt("Monedas", monedas);
+            PlayerPrefs.Save();
+            Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("Barra"))
+        {
+            int barras = PlayerPrefs.GetInt("BarrasChocolate", 0) + 1;
+            PlayerPrefs.SetInt("BarrasChocolate", barras);
+            PlayerPrefs.Save();
+            Destroy(other.gameObject);
+        }
 
-            // Actualiza el texto en pantalla (si hay un UI Text asignado)
-            if (contadorTexto != null)
-            {
-                contadorTexto.text = "Objetos: " + contadorObjetos;
-            }
+        if (uiManager != null)
+        {
+            uiManager.ActualizarUI();
         }
     }
 }
